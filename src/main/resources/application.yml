@@ -1,1 +1,13 @@
-spring.application.name=sse_chat
+server:
+  port: 8090
+spring:
+  thymeleaf:
+    cache: false
+    prefix: file:src/main/resources/templates/
+  jpa:
+    open-in-view: false
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
