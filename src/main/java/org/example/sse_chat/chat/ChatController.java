@@ -1,18 +1,20 @@
 package org.example.sse_chat.chat;
 
+import lombok.AllArgsConstructor;
 import org.example.sse_chat.RsData;
 import org.example.sse_chat.dto.ChatMessageResponse;
 import org.example.sse_chat.dto.ChatWriteMessageResponse;
+import org.example.sse_chat.dto.MessagesRequest;
+import org.example.sse_chat.dto.WriteMessageRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Controller
+@AllArgsConstructor
 @RequestMapping("/chat")
 public class ChatController {
 
@@ -20,23 +22,40 @@ public class ChatController {
 
     @PostMapping("/writeMessage")
     @ResponseBody
-    public RsData<ChatWriteMessageResponse> writeMessage() {
+    public RsData<ChatWriteMessageResponse> writeMessage(@RequestBody WriteMessageRequest writeMessage){
 
-        ChatMessage message = new ChatMessage("김철수", "안녕하세요, 채팅보냅니다~");
-        chatMessages.add(message);
+        ChatMessage cm = new ChatMessage(writeMessage.getAuthorName(), writeMessage.getContent());
+        chatMessages.add(cm);
 
-        message = new ChatMessage("안영희", "안녕하세요,반갑습니다~");
-        chatMessages.add(message);
+        return new RsData("200", "메시지가 작성되었습니다!", new ChatWriteMessageResponse(cm));
+    }
 
-        return new RsData("200", "ok", new ChatWriteMessageResponse(chatMessages));
+    public record ChatMessageRequest(Long formId, Long toId) {
     }
 
     @GetMapping("/getMessages")
     @ResponseBody
-    public RsData<ChatMessageResponse> getMessage(){
+    public RsData<ChatMessageResponse> getMessage(MessagesRequest messagesRequest){
 
+        List<ChatMessage> messages = chatMessages;
+        if (messagesRequest.fromId() != null) {
 
-        return new RsData("200", "ok", new ChatMessageResponse(chatMessages));
+            int index = IntStream.range(0, messages.size())
+                    .filter(i -> chatMessages.get(i).getId() == messagesRequest.fromId())
+                    .findFirst()
+                    .orElse(-1);
+
+            if (index != -1) {
+                messages = messages.subList(index + 1, messages.size());
+            }
+
+        }
+
+        return new RsData<>("200", "ok", new ChatMessageResponse(messages, messages.size()));
+    }
+    @GetMapping("/room")
+    public String room () {
+        return "chat/room";
     }
 
 }

@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class ChatWriteMessageResponse {
-    private List<ChatMessage> chatMessages;
+    ChatMessage chatMessage;
 }
