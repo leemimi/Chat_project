@@ -10,4 +10,7 @@ import java.util.List;
 @Getter
 public class ChatWriteMessageResponse {
     ChatMessage chatMessage;
+
+    public ChatWriteMessageResponse (List<ChatMessage> messages, int size) {
+    }
 }

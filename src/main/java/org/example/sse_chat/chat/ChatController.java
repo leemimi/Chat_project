@@ -6,6 +6,7 @@ import org.example.sse_chat.dto.ChatMessageResponse;
 import org.example.sse_chat.dto.ChatWriteMessageResponse;
 import org.example.sse_chat.dto.MessagesRequest;
 import org.example.sse_chat.dto.WriteMessageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,24 +20,23 @@ import java.util.stream.IntStream;
 public class ChatController {
 
     private List<ChatMessage> chatMessages = new ArrayList<>();
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/writeMessage")
     @ResponseBody
-    public RsData<ChatWriteMessageResponse> writeMessage(@RequestBody WriteMessageRequest writeMessage){
+    public RsData<ChatWriteMessageResponse> writeMessage(@RequestBody WriteMessageRequest writeMessageRequest) {
 
-        ChatMessage cm = new ChatMessage(writeMessage.getAuthorName(), writeMessage.getContent());
+        ChatMessage cm = new ChatMessage(writeMessageRequest.getAuthorName(), writeMessageRequest.getContent());
         chatMessages.add(cm);
 
-        return new RsData("200", "메시지가 작성되었습니다!", new ChatWriteMessageResponse(cm));
+        messagingTemplate.convertAndSend("/topic/chat/writeMessage", new ChatWriteMessageResponse(cm));
+
+        return new RsData("200", "메세지가 작성되었습니다.", new ChatWriteMessageResponse(cm));
     }
 
-    public record ChatMessageRequest(Long formId, Long toId) {
-    }
-
-    @GetMapping("/getMessages")
+    @GetMapping("/messages")
     @ResponseBody
-    public RsData<ChatMessageResponse> getMessage(MessagesRequest messagesRequest){
-
+    public RsData<ChatMessageResponse> messages(MessagesRequest messagesRequest) {
         List<ChatMessage> messages = chatMessages;
         if (messagesRequest.fromId() != null) {
 
@@ -51,11 +51,11 @@ public class ChatController {
 
         }
 
-        return new RsData<>("200", "ok", new ChatMessageResponse(messages, messages.size()));
+        return new RsData("200", "메세지 가져오기 성공", new ChatWriteMessageResponse(messages, chatMessages.size()));
     }
+
     @GetMapping("/room")
     public String room () {
         return "chat/room";
     }
-
 }
