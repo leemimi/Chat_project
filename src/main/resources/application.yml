@@ -5,7 +5,8 @@ spring:
     cache: false
     prefix: file:src/main/resources/templates/
   jpa:
-    open-in-view: false
+    open-in-view:
+      exclude-patterns: /chat/messasges, /post/detail2
   devtools:
     livereload:
       enabled: true
